@@ -1,0 +1,6 @@
+{
+  "appId": "com.myfilza.app",
+  "appName": "MyFilzaApp",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}

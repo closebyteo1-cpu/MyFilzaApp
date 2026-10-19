@@ -1,0 +1,16 @@
+{
+  "name": "my-filza-app",
+  "version": "1.0.0",
+  "description": "My Filza Manager App",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Building web assets...'"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0"
+  }
+}
