@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Filza Manager</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f2f2f7;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #ffffff;
+            padding: 15px;
+            border-bottom: 1px solid #e5e5ea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+            color: #000;
+        }
+        .file-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background: #fff;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 0.5px solid #c6c6c8;
+            cursor: pointer;
+        }
+        .file-item:active {
+            background-color: #e5e5ea;
+        }
+        .icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        .details {
+            flex-grow: 1;
+        }
+        .name {
+            font-size: 16px;
+            color: #000;
+            font-weight: 500;
+        }
+        .sub {
+            font-size: 12px;
+            color: #8e8e93;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 id="path-title">/Documents</h1>
+        <button onclick="createNewFolder()" style="color: #007aff; border: none; background: none; font-size: 16px; cursor: pointer;">+ Thư mục</button>
+    </div>
+
+    <ul class="file-list" id="file-container">
+        <!-- Danh sách file sẽ xuất hiện ở đây -->
+    </ul>
+
+    <script>
+        // Khởi tạo dữ liệu tệp tin ban đầu
+        let currentPath = "/Documents";
+        let fileSystem = [
+            { id: 1, name: "Media", isFolder: true, size: "--", date: "19/10/2026" },
+            { id: 2, name: "Cấu hình", isFolder: true, size: "--", date: "19/10/2026" },
+            { id: 3, name: "menu.json", isFolder: false, size: "1.2 KB", date: "19/10/2026" },
+            { id: 4, name: "notes.txt", isFolder: false, size: "500 B", date: "19/10/2026" }
+        ];
+
+        // Hàm hiển thị danh sách tệp ra màn hình
+        function renderFiles() {
+            const container = document.getElementById("file-container");
+            document.getElementById("path-title").innerText = currentPath;
+            container.innerHTML = "";
+
+            if (fileSystem.length === 0) {
+                container.innerHTML = `<li style="padding: 20px; text-align: center; color: #8e8e93;">Thư mục trống</li>`;
+                return;
+            }
+
+            fileSystem.forEach(file => {
+                const li = document.createElement("li");
+                li.className = "file-item";
+                li.innerHTML = `
+                    <div class="icon">${file.isFolder ? '📁' : '📄'}</div>
+                    <div class="details">
+                        <div class="name">${file.name}</div>
+                        <div class="sub">${file.isFolder ? 'Thư mục' : file.size} • ${file.date}</div>
+                    </div>
+                    <button onclick="renameItem(${file.id}, event)" style="margin-right: 8px; border:none; background:none; color:#007aff; cursor:pointer; font-size: 16px;" title="Đổi tên">✏️</button>
+                    <button onclick="deleteItem(${file.id}, event)" style="border:none; background:none; color:#ff3b30; cursor:pointer; font-size: 16px;" title="Xóa">🗑️</button>
+                `;
+                
+                // Xử lý khi nhấn vào từng dòng
+                li.onclick = (e) => {
+                    if (file.isFolder) {
+                        currentPath += "/" + file.name;
+                        renderFiles();
+                    } else {
+                        alert("Đang mở file: " + file.name);
+                    }
+                };
+
+                container.appendChild(li);
+            });
+        }
+
+        // 1. Tính năng tạo thư mục mới
+        function createNewFolder() {
+            const folderName = prompt("Nhập tên thư mục mới:");
+            if (folderName && folderName.trim() !== "") {
+                const newFolder = {
+                    id: Date.now(),
+                    name: folderName.trim(),
+                    isFolder: true,
+                    size: "--",
+                    date: new Date().toLocaleDateString('vi-VN')
+                };
+                fileSystem.push(newFolder);
+                renderFiles();
+            }
+        }
+
+        // 2. Tính năng đổi tên tệp/thư mục
+        function renameItem(id, event) {
+            event.stopPropagation(); // Ngăn việc bấm lầm vào mở file
+            const item = fileSystem.find(f => f.id === id);
+            if (item) {
+                const newName = prompt("Nhập tên mới:", item.name);
+                if (newName && newName.trim() !== "") {
+                    item.name = newName.trim();
+                    renderFiles();
+                }
+            }
+        }
+
+        // 3. Tính năng xóa tệp/thư mục
+        function deleteItem(id, event) {
+            event.stopPropagation();
+            const item = fileSystem.find(f => f.id === id);
+            if (item && confirm(`Bạn có chắc muốn xóa "${item.name}"?`)) {
+                fileSystem = fileSystem.filter(f => f.id !== id);
+                renderFiles();
+            }
+        }
+
+        // Tải danh sách lần đầu
+        renderFiles();
+    </script>
+</body>
+</html>
