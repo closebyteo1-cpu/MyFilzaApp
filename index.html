@@ -2,62 +2,280 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cài đặt Magic App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MAGICS APP - Chính chủ Trịnh Minh Quang</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter & FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    },
+                    colors: {
+                        iosBg: '#090a0f',
+                        iosBlue: '#007aff',
+                        iosPurple: '#AF52DE',
+                        iosCard: 'rgba(255, 255, 255, 0.05)',
+                    },
+                    animation: {
+                        'spin-slow': 'spin 12s linear infinite',
+                        'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+                            '50%': { opacity: '0.8', transform: 'scale(1.08)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
+        /* Custom Smooth Glassmorphism Styles */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            text-align: center;
-            padding: 80px 20px;
-            background-color: #f2f2f7;
-            margin: 0;
+            background-color: #050608;
+            color: #f3f4f6;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
-        .card {
-            background: white;
-            padding: 30px 20px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            max-width: 350px;
-            margin: 0 auto;
+
+        .glass-card {
+            background: rgba(22, 27, 38, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
-        h1 {
-            font-size: 24px;
-            color: #000;
-            margin-bottom: 10px;
+
+        .glass-btn-primary {
+            background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+            box-shadow: 0 8px 25px rgba(0, 122, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        p {
-            color: #8e8e93;
-            font-size: 14px;
-            margin-bottom: 30px;
+
+        .glass-btn-primary:active {
+            transform: scale(0.96);
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
         }
-        .btn-install {
-            display: inline-block;
-            padding: 16px 32px;
-            background-color: #007aff;
-            color: white;
-            border-radius: 14px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 17px;
-            box-shadow: 0 4px 12px rgba(0,122,255,0.3);
-            transition: background 0.2s;
+
+        .glass-btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        .btn-install:active {
-            background-color: #0056b3;
+
+        .glass-btn-secondary:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Glowing magic ring effect */
+        .magic-ring {
+            position: absolute;
+            inset: -4px;
+            border-radius: 28px;
+            background: linear-gradient(45deg, #007aff, #af52de, #ff2d55, #007aff);
+            background-size: 300% 300%;
+            animation: glowingRing 6s ease infinite;
+            filter: blur(8px);
+            opacity: 0.7;
+            z-index: 0;
+        }
+
+        @keyframes glowingRing {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .badge-chip {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Modal popup overlay */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col justify-between items-center relative px-4 py-8 md:py-12 selection:bg-iosBlue selection:text-white">
 
-    <div class="card">
-        <h1>Magic App iOS</h1>
-        <p>Bấm nút bên dưới bằng trình duyệt <b>Safari</b> để cài đặt ứng dụng trực tiếp về máy.</p>
+    <!-- Background Ambient Glow Lights -->
+    <div class="fixed top-1/4 -left-20 w-80 h-80 bg-iosBlue/30 rounded-full blur-[120px] pointer-events-none animate-pulse-glow"></div>
+    <div class="fixed bottom-1/4 -right-20 w-80 h-80 bg-iosPurple/30 rounded-full blur-[120px] pointer-events-none animate-pulse-glow" style="animation-delay: 2s;"></div>
+
+    <!-- Header Branding -->
+    <header class="w-full max-w-md mx-auto text-center mb-6 z-10 flex justify-center items-center gap-2">
+        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <span class="text-xs font-semibold uppercase tracking-widest text-emerald-400">Hệ Thống OTA Sẵn Sàng</span>
+    </header>
+
+    <!-- Main App Container Card -->
+    <main class="w-full max-w-md glass-card rounded-[32px] p-6 md:p-8 text-center relative z-10 border border-white/10 animate-float">
         
-        <!-- Đường dẫn itms-services đặc biệt giúp kích hoạt OTA -->
-        <a class="btn-install" href="itms-services://?action=download-manifest&url=https://closebyteo1-cpu.github.io/MyFilzaApp/manifest.plist">
-            CÀI ĐẶT MAGIC APP
+        <!-- Animated App Icon Container -->
+        <div class="relative w-28 h-28 mx-auto mb-6 flex items-center justify-center">
+            <!-- Glowing background aura behind icon -->
+            <div class="magic-ring"></div>
+            
+            <!-- App Icon Content: Đã chèn ảnh Avatar vào khung -->
+            <div class="relative w-full h-full rounded-[24px] bg-gradient-to-br from-gray-900 via-slate-800 to-black p-0.5 border border-white/20 overflow-hidden shadow-2xl z-10 flex items-center justify-center">
+                <img src="https://i.postimg.cc/t4KmmgB6/avt-magic.jpg" alt="MAGICS APP Avatar" class="w-full h-full object-cover rounded-[22px]">
+            </div>
+        </div>
+
+        <!-- App Name -->
+        <h1 class="text-3xl font-black tracking-tight text-white mb-2 flex items-center justify-center gap-2">
+            MAGICS APP
+        </h1>
+
+        <!-- Author / Owner Credentials with Verified Badge -->
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-gray-300 mb-6 shadow-inner">
+            <span>Chính chủ:</span>
+            <span class="font-bold text-white tracking-wide">TRỊNH MINH QUANG</span>
+            <!-- Verified Badge Icon -->
+            <i class="fa-solid fa-circle-check text-iosBlue text-sm drop-shadow-[0_0_6px_rgba(0,122,255,0.8)]"></i>
+        </div>
+
+        <!-- App Metadata Badges Grid -->
+        <div class="grid grid-cols-3 gap-2 mb-8">
+            <div class="badge-chip p-2.5 rounded-2xl flex flex-col items-center justify-center">
+                <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Phiên Bản</span>
+                <span class="text-xs font-bold text-white mt-0.5">v1.0.0</span>
+            </div>
+            <div class="badge-chip p-2.5 rounded-2xl flex flex-col items-center justify-center">
+                <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Dung Lượng</span>
+                <span class="text-xs font-bold text-white mt-0.5">~15 MB</span>
+            </div>
+            <div class="badge-chip p-2.5 rounded-2xl flex flex-col items-center justify-center">
+                <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Yêu Cầu</span>
+                <span class="text-xs font-bold text-white mt-0.5">iOS 14.0+</span>
+            </div>
+        </div>
+
+        <!-- Primary Action Button: OTA Install -->
+        <a href="itms-services://?action=download-manifest&url=https://closebyteo1-cpu.github.io/MyFilzaApp/manifest.plist" 
+           onclick="showInstallNotice()"
+           class="glass-btn-primary w-full py-4 px-6 rounded-2xl flex items-center justify-center gap-3 text-white font-extrabold text-sm tracking-wide uppercase mb-3.5 group">
+            <i class="fa-brands fa-apple text-xl group-hover:scale-110 transition-transform"></i>
+            <span>CÀI ĐẶT TRỰC TIẾP TRÊN IPHONE</span>
         </a>
+
+        <!-- Secondary Action Button: Download IPA -->
+        <a href="MagicApp.ipa" download 
+           class="glass-btn-secondary w-full py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 text-gray-200 font-bold text-xs tracking-wide uppercase mb-6">
+            <i class="fa-solid fa-file-arrow-down text-sm text-cyan-400"></i>
+            <span>TẢI FILE .IPA MIỄN PHÍ</span>
+        </a>
+
+        <!-- Accordion / Instructions Section -->
+        <div class="border-t border-white/10 pt-5 text-left">
+            <button onclick="toggleInstructions()" class="w-full flex justify-between items-center text-xs font-semibold text-gray-300 hover:text-white transition-colors focus:outline-none">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-iosBlue"></i>
+                    <span>Hướng dẫn cài đặt & Sửa lỗi</span>
+                </span>
+                <i id="accordion-arrow" class="fa-solid fa-chevron-down text-gray-400 transition-transform duration-300"></i>
+            </button>
+
+            <div id="instructions-content" class="hidden mt-3 space-y-3 text-xs text-gray-300 leading-relaxed bg-black/30 p-3.5 rounded-xl border border-white/5">
+                <div>
+                    <p class="font-bold text-cyan-400 mb-1">Cách 1: Cài trực tiếp (OTA)</p>
+                    <p class="text-gray-400">Bấm nút <strong class="text-white">CÀI ĐẶT TRỰC TIẾP</strong> ➔ Mở Safari ➔ Bấm "Cài đặt" ở popup. Về Màn hình chính xem app tải về.</p>
+                </div>
+                <div class="border-t border-white/10 pt-2">
+                    <p class="font-bold text-purple-400 mb-1">Cách 2: Cài bằng File .IPA (Nếu báo lỗi tính toàn vẹn)</p>
+                    <p class="text-gray-400">Bấm <strong class="text-white">TẢI FILE .IPA</strong> ➔ Dùng các ứng dụng như <strong class="text-white">TrollStore, AltStore, SideStore</strong> hoặc <strong class="text-white">ESign</strong> để nhập và cài đặt vĩnh viễn.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Copyright -->
+    <footer class="w-full max-w-md mx-auto text-center mt-8 z-10">
+        <p class="text-xs text-gray-500 font-medium tracking-wider">
+            &copy; 2026 Bản quyền thuộc về <span class="text-gray-300 font-semibold">TRỊNH MINH QUANG</span>
+        </p>
+        <p class="text-[10px] text-gray-600 mt-1">Phân phối chính thức qua hệ thống GitHub Pages OTA</p>
+    </footer>
+
+    <!-- Installation Modal Popup Notice -->
+    <div id="installModal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="glass-card rounded-3xl max-w-xs w-full p-6 text-center border border-white/20 transform scale-95 transition-transform duration-300" id="modalCard">
+            <div class="w-12 h-12 rounded-full bg-iosBlue/20 border border-iosBlue/40 text-iosBlue flex items-center justify-center mx-auto mb-4 text-xl">
+                <i class="fa-solid fa-spinner animate-spin"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Đang Kích Hoạt OTA...</h3>
+            <p class="text-xs text-gray-300 leading-normal mb-5">
+                Vui lòng thoát ra <strong class="text-white">Màn hình chính (Home Screen)</strong> của iPhone để theo dõi quá trình ứng dụng tải về.
+            </p>
+            <button onclick="closeInstallNotice()" class="glass-btn-primary w-full py-2.5 rounded-xl text-xs font-bold text-white uppercase tracking-wider">
+                Đã Hiểu
+            </button>
+        </div>
     </div>
 
+    <!-- Embedded Interactive Scripts -->
+    <script>
+        // Toggle Accordion Instructions
+        function toggleInstructions() {
+            const content = document.getElementById('instructions-content');
+            const arrow = document.getElementById('accordion-arrow');
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Show OTA Installation Alert Modal
+        function showInstallNotice() {
+            const modal = document.getElementById('installModal');
+            const modalCard = document.getElementById('modalCard');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalCard.classList.remove('scale-95');
+                modalCard.classList.add('scale-100');
+            }, 10);
+        }
+
+        // Close Modal
+        function closeInstallNotice() {
+            const modal = document.getElementById('installModal');
+            const modalCard = document.getElementById('modalCard');
+            
+            modal.classList.add('opacity-0');
+            modalCard.classList.remove('scale-100');
+            modalCard.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    </script>
 </body>
 </html>
