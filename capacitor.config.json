@@ -1,6 +1,9 @@
 {
-  "appId": "com.myfilza.app",
-  "appName": "MyFilzaApp",
+  "appId": "com.trinhminhquang.magicsapp",
+  "appName": "MAGICS APP",
   "webDir": "www",
-  "bundledWebRuntime": false
+  "server": {
+    "url": "https://closebyteo1-cpu.github.io/magicsapp/",
+    "cleartext": true
+  }
 }
