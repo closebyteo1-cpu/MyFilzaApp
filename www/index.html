@@ -2,163 +2,989 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Filza Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Magic App </title>
+    
+    <!-- Cấu hình PWA & Ẩn hoàn toàn thanh điều hướng khi add to home screen -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Magic App">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/zf3gp8qV/avt-magic.jpg">
+    <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/zf3gp8qV/avt-magic.jpg">
+    
+    <!-- Manifest nhúng trực tiếp nhận diện Standalone -->
+    <link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"Magic App VIP","short_name":"MagicApp","start_url":"./","display":"standalone","background_color":"#050505","theme_color":"#050505","icons":[{"src":"https://i.postimg.cc/zf3gp8qV/avt-magic.jpg","sizes":"512x512","type":"image/jpeg"}]}'>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK Compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f2f2f7;
-            margin: 0;
-            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            background-color: #050505;
+            overflow-x: hidden;
+            overflow-y: auto;
+            /* Xử lý khoảng cách an toàn tránh bị tràn lên đồng hồ hoặc cấn thanh dưới iPhone */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
-        .header {
-            background-color: #ffffff;
-            padding: 15px;
-            border-bottom: 1px solid #e5e5ea;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            animation: float 10s infinite ease-in-out alternate;
+            pointer-events: none;
         }
-        .header h1 {
-            margin: 0;
-            font-size: 18px;
-            color: #000;
+        .orb-1 { width: 300px; height: 300px; background: #a855f7; top: -50px; left: -50px; }
+        .orb-2 { width: 400px; height: 400px; background: #ec4899; bottom: -100px; right: -50px; animation-delay: -5s; }
+        .orb-3 { width: 250px; height: 250px; background: #8b5cf6; top: 40%; left: 30%; animation-delay: -2s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, 50px) scale(1.1); }
         }
-        .file-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            background: #fff;
+
+        .glass-panel {
+            background: rgba(20, 20, 25, 0.65);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            position: relative;
+            z-index: 10;
         }
-        .file-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-bottom: 0.5px solid #c6c6c8;
+
+        .avatar-glow { animation: pulse-glow 2s infinite alternate; }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 10px #a855f7, 0 0 20px #a855f7; }
+            100% { box-shadow: 0 0 20px #ec4899, 0 0 40px #ec4899; }
+        }
+
+        .shine-text {
+            background: linear-gradient(90deg, #fff, #444, #fff);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 3s linear infinite;
+        }
+        @keyframes shine { to { background-position: 200% center; } }
+
+        .input-line {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .input-line:focus-within {
+            border-bottom: 2px solid #a855f7;
+            box-shadow: 0 10px 10px -10px #a855f7;
+        }
+
+        .social-btn {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .social-btn::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 1.25rem;
+            z-index: -1;
+            filter: blur(10px);
+            opacity: 0.4;
+            transition: opacity 0.3s ease;
+        }
+        .social-btn:hover::before { opacity: 0.8; }
+        .social-fb::before { background: #1877F2; }
+        .social-zalo::before { background: #0068FF; }
+        .social-group::before { background: #a855f7; }
+
+        .ff-tab-card {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(15, 15, 20, 0.6);
+            transition: all 0.3s ease;
             cursor: pointer;
         }
-        .file-item:active {
-            background-color: #e5e5ea;
+        .ff-tab-card:hover {
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
         }
-        .icon {
-            font-size: 24px;
-            margin-right: 12px;
+        .ff-tab-card.selected {
+            border-color: #ec4899;
+            background: rgba(236, 72, 153, 0.15);
+            box-shadow: 0 0 25px rgba(236, 72, 153, 0.4);
         }
-        .details {
-            flex-grow: 1;
+
+        .toggle-checkbox:checked { right: 0; border-color: #ec4899; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #ec4899; box-shadow: 0 0 10px #ec4899; }
+
+        .font-mono-code {
+            font-family: 'JetBrains Mono', monospace;
         }
-        .name {
-            font-size: 16px;
-            color: #000;
-            font-weight: 500;
+
+        .screen {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
         }
-        .sub {
-            font-size: 12px;
-            color: #8e8e93;
-            margin-top: 2px;
-        }
+        .screen.hidden-screen { opacity: 0; pointer-events: none; transform: scale(0.95); }
+        .screen.active-screen { opacity: 1; pointer-events: auto; transform: scale(1); position: relative; }
     </style>
 </head>
-<body>
+<body class="text-white relative min-h-screen">
 
-    <div class="header">
-        <h1 id="path-title">/Documents</h1>
-        <button onclick="createNewFolder()" style="color: #007aff; border: none; background: none; font-size: 16px; cursor: pointer;">+ Thư mục</button>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- ============================================== -->
+    <!-- SCREEN 1: LOGIN -->
+    <!-- ============================================== -->
+    <div id="loginScreen" class="screen active-screen flex-col">
+        <div class="glass-panel w-full max-w-sm rounded-[2rem] p-8 mx-4 flex flex-col items-center my-auto">
+            
+            <div class="relative mb-6">
+                <img src="https://i.postimg.cc/zf3gp8qV/avt-magic.jpg" alt="Avatar" class="w-24 h-24 rounded-full object-cover border-2 border-white/20 avatar-glow">
+            </div>
+
+            <h1 class="text-4xl font-extrabold tracking-wider mb-6 shine-text text-center w-full">
+                MAGIC APP
+            </h1>
+
+            <div class="w-full mb-8 relative z-50">
+                <p class="text-[10px] text-gray-400 font-semibold mb-3 tracking-widest text-left uppercase border-b border-white/10 pb-1">Hệ Thống Phân Dịch Vụ</p>
+                
+                <div id="dropdownToggle" class="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div id="dropdownLogo" class="w-7 h-7 rounded-lg bg-purple-600/30 flex items-center justify-center text-purple-400 text-xs">
+                            <i class="fas fa-feather-pointed"></i>
+                        </div>
+                        <span id="selectedPackageText" class="text-sm font-bold text-white tracking-wide">Nhẹ Tâm</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 text-sm" id="dropdownIcon"></i>
+                </div>
+
+                <div id="dropdownMenu" class="absolute w-full top-[105%] left-0 bg-[#14141c]/95 backdrop-blur-2xl border border-white/10 rounded-xl overflow-hidden shadow-2xl opacity-0 pointer-events-none transform -translate-y-2 transition-all duration-300">
+                    <div class="dropdown-item p-3 hover:bg-white/10 cursor-pointer flex items-center gap-3 transition-colors border-b border-white/5" data-value="nhetam" data-text="Nhẹ Tâm">
+                        <div class="w-7 h-7 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 text-xs">
+                            <i class="fas fa-feather-pointed"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-white">Nhẹ Tâm</p>
+                            <p class="text-[9px] text-gray-400">Gói tiêu chuẩn mượt mà</p>
+                        </div>
+                    </div>
+                    <div class="dropdown-item p-3 hover:bg-white/10 cursor-pointer flex items-center gap-3 transition-colors border-b border-white/5" data-value="aimbody" data-text="AimBody + ESP">
+                        <div class="w-7 h-7 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400 text-xs">
+                            <i class="fas fa-crosshairs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-white">AimBody + ESP</p>
+                            <p class="text-[9px] text-gray-400">Khóa thân & Định vị tường</p>
+                        </div>
+                    </div>
+                    <div class="dropdown-item p-3 hover:bg-white/10 cursor-pointer flex items-center gap-3 transition-colors bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20" data-value="full" data-text="Gói Full (VIP)">
+                        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center text-white text-xs shadow-[0_0_8px_#ec4899]">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold uppercase bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">Gói Full (VIP)</p>
+                            <p class="text-[9px] text-gray-400">Toàn bộ tính năng cao cấp</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full relative input-line mb-8 z-40">
+                <input type="password" id="keyInput" placeholder="ENTER ACCESS KEY" 
+                    class="w-full bg-transparent text-white placeholder-gray-500 py-3 px-2 outline-none text-center font-medium tracking-widest text-sm">
+                <button type="button" id="togglePassword" class="absolute right-2 top-3 text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-eye" id="eyeIcon"></i>
+                </button>
+            </div>
+
+            <button id="loginBtn" class="w-full py-4 rounded-xl font-bold text-lg tracking-wider bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 transition-all duration-300 shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] mb-8 z-40 relative">
+                XÁC THỰC
+            </button>
+
+            <div class="flex justify-center gap-4 w-full mb-6 z-40 relative">
+                <a href="https://web.facebook.com/profile.php?id=61583336937830" target="_blank" class="social-btn social-fb flex-1 flex flex-col items-center justify-center p-3 rounded-2xl bg-[#14141c] border border-white/10 hover:bg-white/10 group">
+                    <i class="fab fa-facebook text-[#1877F2] text-xl mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-[9px] text-gray-300 font-bold tracking-wider">FACEBOOK</span>
+                </a>
+                <a href="https://zalo.me/08261212008" target="_blank" class="social-btn social-zalo flex-1 flex flex-col items-center justify-center p-3 rounded-2xl bg-[#14141c] border border-white/10 hover:bg-white/10 group">
+                    <div class="bg-[#0068FF] text-white text-[10px] font-extrabold w-5 h-5 rounded flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">Z</div>
+                    <span class="text-[9px] text-gray-300 font-bold tracking-wider">ZALO</span>
+                </a>
+                <a href="https://zalo.me/g/yr7ucgmkmbmcij6uv1zr" target="_blank" class="social-btn social-group flex-1 flex flex-col items-center justify-center p-3 rounded-2xl bg-[#14141c] border border-white/10 hover:bg-white/10 group">
+                    <i class="fas fa-users text-[#a855f7] text-xl mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-[9px] text-gray-300 font-bold tracking-wider">GROUP</span>
+                </a>
+            </div>
+
+            <div class="text-[10px] font-light tracking-widest text-gray-500 uppercase z-40 relative">
+                @ 2026 MQuang VIP
+            </div>
+        </div>
     </div>
 
-    <ul class="file-list" id="file-container">
-        <!-- Danh sách file sẽ xuất hiện ở đây -->
-    </ul>
+    <!-- ============================================== -->
+    <!-- SCREEN 2: ADMIN PANEL (admin9999) -->
+    <!-- ============================================== -->
+    <div id="adminScreen" class="screen hidden-screen flex-col">
+        <div class="glass-panel w-full max-w-xl rounded-[2rem] p-6 mx-4 flex flex-col max-h-[85vh] my-auto">
+            
+            <div class="flex items-center justify-between mb-5 border-b border-white/10 pb-3 flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center shadow-[0_0_10px_#a855f7]">
+                        <i class="fas fa-shield-alt text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-base tracking-wide text-purple-400">ADMIN CONTROL PANEL PRO</h2>
+                        <p class="text-[10px] text-gray-400">Quản lý kho key, HWID và thời hạn chính xác</p>
+                    </div>
+                </div>
+                <button id="adminLogoutBtn" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-red-500/50 text-xs font-bold transition-colors">
+                    ĐĂNG XUẤT
+                </button>
+            </div>
+
+            <div class="space-y-3 mb-5 bg-black/40 p-4 rounded-2xl border border-white/5 flex-shrink-0">
+                <h3 class="text-xs text-gray-400 uppercase tracking-widest font-bold">Tạo Key Mới Khóa HWID (1 Máy)</h3>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">Loại Dịch Vụ</label>
+                        <select id="genPackage" class="w-full bg-[#14141c] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none">
+                            <option value="nhetam">Nhẹ Tâm</option>
+                            <option value="aimbody">AimBody + ESP</option>
+                            <option value="full">Gói Full (VIP)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">Thời Gian Sử Dụng</label>
+                        <select id="genDuration" class="w-full bg-[#14141c] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none">
+                            <option value="1_month">1 Tháng (30 Ngày)</option>
+                            <option value="3_months">3 Tháng (90 Ngày)</option>
+                            <option value="lifetime">Vĩnh Viễn (Lifetime)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Mã Key</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="genKeyInput" placeholder="VD: MQUANG-VIP-XXXX" class="w-full bg-[#14141c] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none font-mono">
+                        <button id="randomKeyBtn" class="px-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-colors">Random</button>
+                    </div>
+                </div>
+
+                <button id="saveKeyBtn" class="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 hover:opacity-90 transition-opacity text-xs shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                    LƯU KEY VÀO FIREBASE
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-hidden flex flex-col min-h-0">
+                <h3 class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-2 flex-shrink-0">Danh Sách Key Hiện Có Trên Hệ Thống</h3>
+                <div id="keyListContainer" class="bg-black/40 rounded-2xl p-3 border border-white/5 overflow-y-auto space-y-2 text-xs font-mono flex-1">
+                    <p class="text-gray-500 text-center py-4">Đang tải dữ liệu từ database...</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- SCREEN 3: DASHBOARD - GIAO DIỆN ĐIỀU KHIỂN CHÍNH -->
+    <!-- ============================================== -->
+    <div id="dashboardScreen" class="screen hidden-screen flex-col">
+        <div class="glass-panel w-full max-w-md rounded-[2rem] p-6 mx-4 flex flex-col max-h-[85vh] my-auto overflow-y-auto">
+            
+            <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3 flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <img src="https://i.postimg.cc/zf3gp8qV/avt-magic.jpg" class="w-12 h-12 rounded-full border-2 border-purple-500 object-cover shadow-[0_0_10px_#a855f7]">
+                    <div>
+                        <h2 class="font-extrabold text-base tracking-wider shine-text">MAGIC APP</h2>
+                        <span id="packageBadge" class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">Gói: Đang kết nối</span>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="w-10 h-10 rounded-full bg-white/10 hover:bg-red-500/50 flex items-center justify-center transition-colors">
+                    <i class="fas fa-power-off text-white"></i>
+                </button>
+            </div>
+
+            <!-- THANH TRẠNG THÁI KEY -->
+            <div class="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-2xl px-4 py-2.5 border border-purple-500/30 mb-4 shadow-[inset_0_0_15px_rgba(168,85,247,0.05)] flex items-center justify-between flex-shrink-0">
+                <div id="timedKeySection" class="w-full flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-clock text-purple-400 text-xs"></i>
+                        <span class="text-[10px] text-gray-300 uppercase tracking-widest font-bold">Hạn Dùng:</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-mono font-bold">
+                        <span class="text-white"><span id="cdDays" class="text-purple-300 font-extrabold text-sm">00</span><span class="text-[9px] text-gray-400 ml-0.5">d</span></span>
+                        <span class="text-gray-500">:</span>
+                        <span class="text-white"><span id="cdHours" class="text-purple-300 font-extrabold text-sm">00</span><span class="text-[9px] text-gray-400 ml-0.5">h</span></span>
+                        <span class="text-gray-500">:</span>
+                        <span class="text-pink-400"><span id="cdMins" class="font-extrabold text-sm">00</span><span class="text-[9px] text-gray-400 ml-0.5">m</span></span>
+                        <span class="text-gray-500">:</span>
+                        <span class="text-purple-400"><span id="cdSecs" class="font-extrabold text-sm">00</span><span class="text-[9px] text-gray-400 ml-0.5">s</span></span>
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse ml-1"></span>
+                    </div>
+                </div>
+
+                <div id="lifetimeKeySection" class="hidden w-full flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center text-white shadow-[0_0_8px_rgba(168,85,247,0.5)]">
+                            <i class="fas fa-infinity text-xs"></i>
+                        </div>
+                        <span class="text-xs font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300 tracking-wider">VĨNH VIỄN (LIFETIME)</span>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-md bg-green-500/10 border border-green-500/30 text-[9px] font-bold text-green-400 tracking-wider">VIP VV</span>
+                </div>
+            </div>
+
+            <!-- CHỌN PHIÊN BẢN GAME -->
+            <div class="mb-4 flex-shrink-0">
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2.5 flex items-center gap-2">
+                    <i class="fas fa-gamepad text-pink-400"></i> Chọn Phiên Bản Trò Chơi
+                </p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="ff-tab-card selected rounded-2xl p-3 flex flex-col items-center justify-center relative overflow-hidden group" data-version="normal" onclick="switchFFVersion('normal')">
+                        <div class="absolute top-2 right-2 w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_6px_#a855f7] active-dot"></div>
+                        <img src="https://i.postimg.cc/nhdGkdfh/ff-thg.jpg" alt="FF Thường" class="w-12 h-12 rounded-xl object-cover border border-white/10 mb-1.5 group-hover:scale-105 transition-transform shadow-md">
+                        <span class="text-xs font-bold tracking-wide text-white">Free Fire Thường</span>
+                        <span class="text-[9px] text-gray-400">Bản Chuẩn Gốc</span>
+                    </div>
+
+                    <div class="ff-tab-card rounded-2xl p-3 flex flex-col items-center justify-center relative overflow-hidden group" data-version="max" onclick="switchFFVersion('max')">
+                        <div class="absolute top-2 right-2 w-2 h-2 rounded-full bg-transparent active-dot"></div>
+                        <img src="https://i.postimg.cc/pL1K8pKj/ff-max.jpg" alt="FF Max" class="w-12 h-12 rounded-xl object-cover border border-white/10 mb-1.5 group-hover:scale-105 transition-transform shadow-md">
+                        <span class="text-xs font-bold tracking-wide text-white">Free Fire MAX</span>
+                        <span class="text-[9px] text-gray-400">Đồ Họa Cao</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DNS ANTIBAND -->
+            <div id="dnsCard" class="bg-black/40 rounded-2xl p-4 border border-white/10 mb-3 transition-all duration-300 flex-shrink-0">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-sm text-gray-300 flex items-center gap-2" id="dnsTitle">
+                            <i class="fas fa-shield-alt text-gray-500 transition-colors" id="dnsIcon"></i> DNS ANTIBAND
+                        </p>
+                        <p class="text-[10px] text-gray-500" id="dnsSub">Mã hóa gói tin chống ban tài khoản</p>
+                    </div>
+                    <button id="dnsBtn" onclick="triggerAntiband()" class="px-4 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-xs font-bold text-purple-300 transition-all shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+                        KÍCH HOẠT
+                    </button>
+                </div>
+            </div>
+
+            <!-- KHUNG TÍNH NĂNG ĐỘNG -->
+            <div id="dynamicFeaturesContainer" class="flex-shrink-0"></div>
+
+        </div>
+    </div>
+
+    <!-- TERMINAL MODAL -->
+    <div id="terminalModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-[#0c0c14] border border-green-500/30 p-6 rounded-2xl w-96 shadow-[0_0_30px_rgba(34,197,94,0.2)] transform scale-95 transition-transform duration-300" id="terminalBox">
+            <div class="flex items-center justify-between mb-3 border-b border-green-500/20 pb-2">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+                    <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
+                    <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
+                    <span class="text-[11px] font-mono font-bold text-green-400 ml-2">MQUANG_ANTIBAND_CORE.sh</span>
+                </div>
+                <i class="fas fa-terminal text-green-500"></i>
+            </div>
+            <div id="terminalLogs" class="font-mono-code text-[11px] text-green-400 h-36 overflow-y-auto space-y-1 bg-black/60 p-3 rounded-xl border border-green-500/10">
+                <p>> Initializing secure DNS tunnel...</p>
+            </div>
+            <div class="mt-4">
+                <button id="terminalCloseBtn" disabled class="w-full py-2.5 rounded-xl font-bold bg-green-500/20 border border-green-500/40 text-green-400 text-xs tracking-wider opacity-50 cursor-not-allowed transition-all">
+                    ĐANG KẾT NỐI...
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUCCESS MODAL -->
+    <div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-[#1a1a24] border border-purple-500/40 p-8 rounded-3xl w-80 text-center shadow-2xl transform scale-95 transition-transform duration-300" id="successBox">
+            <div class="w-16 h-16 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center justify-center mx-auto mb-4 text-purple-400 text-2xl shadow-[0_0_15px_#a855f7]">
+                <i class="fas fa-check"></i>
+            </div>
+            <h2 class="text-xl font-extrabold mb-2 text-white">KÍCH HOẠT THÀNH CÔNG</h2>
+            <p class="text-gray-400 mb-6 text-xs leading-relaxed">Đã inject dữ liệu thành công. Bạn có thể vào game được luôn!</p>
+            <button onclick="closeSuccessModal()" class="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 text-white text-xs tracking-wider shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                VÀO GAME NGAY
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="errorModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-[#1a1a24] border border-red-500/50 p-8 rounded-3xl w-80 text-center shadow-[0_0_40px_rgba(239,68,68,0.4)] transform scale-95 transition-transform duration-300" id="errorBox">
+            <div class="w-16 h-16 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center mx-auto mb-4 text-red-500 text-2xl shadow-[0_0_15px_rgba(239,68,68,0.5)] animate-bounce">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 id="errorModalTitle" class="text-xl font-bold mb-2 text-red-400 tracking-wide">Key Không Hợp Lệ</h2>
+            <p id="errorModalMsg" class="text-gray-300 mb-6 text-xs leading-relaxed">Vui lòng kiểm tra lại mã key hoặc loại gói dịch vụ của bạn.</p>
+            <button onclick="closeError()" class="w-full py-3 rounded-xl font-bold bg-red-600 hover:bg-red-500 text-white text-xs tracking-wider shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-colors">
+                THỬ LẠI
+            </button>
+        </div>
+    </div>
 
     <script>
-        // Khởi tạo dữ liệu tệp tin ban đầu
-        let currentPath = "/Documents";
-        let fileSystem = [
-            { id: 1, name: "Media", isFolder: true, size: "--", date: "19/10/2026" },
-            { id: 2, name: "Cấu hình", isFolder: true, size: "--", date: "19/10/2026" },
-            { id: 3, name: "menu.json", isFolder: false, size: "1.2 KB", date: "19/10/2026" },
-            { id: 4, name: "notes.txt", isFolder: false, size: "500 B", date: "19/10/2026" }
-        ];
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-jS4uyRNRxLKK0Y8HNWckpcdVn5sYBoA",
+            authDomain: "mquangipa.firebaseapp.com",
+            databaseURL: "https://mquangipa-default-rtdb.firebaseio.com",
+            projectId: "mquangipa",
+            storageBucket: "mquangipa.firebasestorage.app",
+            messagingSenderId: "87690641376",
+            appId: "1:87690641376:web:6043e5483467c7f5557585",
+            measurementId: "G-SHB9FT0C6J"
+        };
 
-        // Hàm hiển thị danh sách tệp ra màn hình
-        function renderFiles() {
-            const container = document.getElementById("file-container");
-            document.getElementById("path-title").innerText = currentPath;
-            container.innerHTML = "";
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-            if (fileSystem.length === 0) {
-                container.innerHTML = `<li style="padding: 20px; text-align: center; color: #8e8e93;">Thư mục trống</li>`;
+        const keyInput = document.getElementById('keyInput');
+        const togglePassword = document.getElementById('togglePassword');
+        const eyeIcon = document.getElementById('eyeIcon');
+
+        togglePassword.addEventListener('click', () => {
+            keyInput.type = keyInput.type === 'password' ? 'text' : 'password';
+            eyeIcon.className = keyInput.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+        });
+
+        const dropdownToggle = document.getElementById('dropdownToggle');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const dropdownIcon = document.getElementById('dropdownIcon');
+        const selectedPackageText = document.getElementById('selectedPackageText');
+        const dropdownLogo = document.getElementById('dropdownLogo');
+        const dropdownItems = document.querySelectorAll('.dropdown-item');
+
+        let currentPackage = 'nhetam';
+        let packageDisplayName = 'Nhẹ Tâm';
+
+        dropdownToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = !dropdownMenu.classList.contains('opacity-0');
+            if (isOpen) closeDropdown(); else openDropdown();
+        });
+
+        function openDropdown() {
+            dropdownMenu.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-2');
+            dropdownIcon.classList.add('rotate-180');
+        }
+
+        function closeDropdown() {
+            dropdownMenu.classList.add('opacity-0', 'pointer-events-none', '-translate-y-2');
+            dropdownIcon.classList.remove('rotate-180');
+        }
+
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', () => {
+                currentPackage = item.getAttribute('data-value');
+                packageDisplayName = item.getAttribute('data-text');
+                
+                if (currentPackage === 'full') {
+                    selectedPackageText.className = 'text-sm font-bold uppercase bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400 tracking-wide';
+                    dropdownLogo.innerHTML = '<i class="fas fa-crown text-white"></i>';
+                    dropdownLogo.className = 'w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center text-white text-xs shadow-[0_0_8px_#ec4899]';
+                } else if (currentPackage === 'aimbody') {
+                    selectedPackageText.className = 'text-sm font-bold text-white tracking-wide';
+                    dropdownLogo.innerHTML = '<i class="fas fa-crosshairs text-pink-400"></i>';
+                    dropdownLogo.className = 'w-7 h-7 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400 text-xs';
+                } else {
+                    selectedPackageText.className = 'text-sm font-bold text-white tracking-wide';
+                    dropdownLogo.innerHTML = '<i class="fas fa-feather-pointed text-purple-400"></i>';
+                    dropdownLogo.className = 'w-7 h-7 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 text-xs';
+                }
+                
+                selectedPackageText.innerText = packageDisplayName;
+                closeDropdown();
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) closeDropdown();
+        });
+
+        function getHardwareID() {
+            let hwid = localStorage.getItem('mquang_device_hwid');
+            if (!hwid) {
+                hwid = 'DEVICE-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now();
+                localStorage.setItem('mquang_device_hwid', hwid);
+            }
+            return hwid;
+        }
+
+        const loginBtn = document.getElementById('loginBtn');
+        const loginScreen = document.getElementById('loginScreen');
+        const adminScreen = document.getElementById('adminScreen');
+        const dashboardScreen = document.getElementById('dashboardScreen');
+        const errorModal = document.getElementById('errorModal');
+        const errorBox = document.getElementById('errorBox');
+        const packageBadge = document.getElementById('packageBadge');
+
+        const timedKeySection = document.getElementById('timedKeySection');
+        const lifetimeKeySection = document.getElementById('lifetimeKeySection');
+        let countdownInterval = null;
+
+        let gameStates = {
+            normal: { dnsActive: false, aimNeck: false, aimHead: false, espBox: false },
+            max: { dnsActive: false, aimNeck: false, aimHead: false, espBox: false }
+        };
+        let currentVersion = 'normal';
+
+        loginBtn.addEventListener('click', async () => {
+            const key = keyInput.value.trim();
+
+            if (!key) {
+                showErrorModal('Thiếu Mã Key', 'Vui lòng nhập mã key truy cập hệ thống.');
                 return;
             }
 
-            fileSystem.forEach(file => {
-                const li = document.createElement("li");
-                li.className = "file-item";
-                li.innerHTML = `
-                    <div class="icon">${file.isFolder ? '📁' : '📄'}</div>
-                    <div class="details">
-                        <div class="name">${file.name}</div>
-                        <div class="sub">${file.isFolder ? 'Thư mục' : file.size} • ${file.date}</div>
-                    </div>
-                    <button onclick="renameItem(${file.id}, event)" style="margin-right: 8px; border:none; background:none; color:#007aff; cursor:pointer; font-size: 16px;" title="Đổi tên">✏️</button>
-                    <button onclick="deleteItem(${file.id}, event)" style="border:none; background:none; color:#ff3b30; cursor:pointer; font-size: 16px;" title="Xóa">🗑️</button>
-                `;
-                
-                // Xử lý khi nhấn vào từng dòng
-                li.onclick = (e) => {
-                    if (file.isFolder) {
-                        currentPath += "/" + file.name;
-                        renderFiles();
-                    } else {
-                        alert("Đang mở file: " + file.name);
-                    }
-                };
+            if (key === 'admin9999') {
+                loginScreen.classList.remove('active-screen');
+                loginScreen.classList.add('hidden-screen');
+                setTimeout(() => {
+                    loginScreen.style.display = 'none';
+                    adminScreen.style.display = 'flex';
+                    void adminScreen.offsetWidth;
+                    adminScreen.classList.remove('hidden-screen');
+                    adminScreen.classList.add('active-screen');
+                    loadAdminKeys();
+                }, 500);
+                return;
+            }
 
-                container.appendChild(li);
+            try {
+                const snapshot = await db.ref('keys/' + key).once('value');
+                const keyData = snapshot.val();
+
+                if (!keyData) {
+                    showErrorModal('Key Không Tồn Tại', 'Mã key này không có trên cơ sở dữ liệu Firebase.');
+                    return;
+                }
+
+                if (keyData.package !== currentPackage) {
+                    showErrorModal('Sai Gói Dịch Vụ', `Key này thuộc gói [${keyData.package.toUpperCase()}], không khớp với gói bạn đang chọn.`);
+                    return;
+                }
+
+                const currentHWID = getHardwareID();
+                if (keyData.hwid && keyData.hwid !== currentHWID) {
+                    showErrorModal('Key Đã Khóa Máy Khác', 'Key này đã được kích hoạt trên một thiết bị khác. Mỗi key chỉ dùng được cho 1 máy duy nhất!');
+                    return;
+                }
+
+                if (!keyData.hwid) {
+                    await db.ref('keys/' + key).update({ hwid: currentHWID });
+                }
+
+                if (keyData.duration === 'lifetime') {
+                    timedKeySection.classList.add('hidden');
+                    lifetimeKeySection.classList.remove('hidden');
+                } else {
+                    lifetimeKeySection.classList.add('hidden');
+                    timedKeySection.style.display = 'flex';
+
+                    if (Date.now() > keyData.expiresAt) {
+                        showErrorModal('Key Đã Hết Hạn', 'Thời hạn sử dụng của key này đã kết thúc.');
+                        return;
+                    }
+                    startCountdown(keyData.expiresAt);
+                }
+
+                packageBadge.innerText = `Gói: ${packageDisplayName}`;
+                renderDynamicFeatures(currentPackage);
+
+                loginScreen.classList.remove('active-screen');
+                loginScreen.classList.add('hidden-screen');
+                setTimeout(() => {
+                    loginScreen.style.display = 'none';
+                    dashboardScreen.style.display = 'flex';
+                    void dashboardScreen.offsetWidth;
+                    dashboardScreen.classList.remove('hidden-screen');
+                    dashboardScreen.classList.add('active-screen');
+                }, 500);
+
+            } catch (err) {
+                showErrorModal('Lỗi Kết Nối', 'Không thể kết nối đến Firebase Realtime Database.');
+            }
+        });
+
+        function renderDynamicFeatures(pkgType) {
+            const container = document.getElementById('dynamicFeaturesContainer');
+            let html = '';
+
+            if (pkgType === 'nhetam') {
+                html = `
+                    <div class="bg-black/40 rounded-2xl p-4 border border-white/10 mb-2">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-bold text-sm text-pink-400 flex items-center gap-2">
+                                    <i class="fas fa-crosshairs"></i> INJECT CACHE (AIM NECK)
+                                </p>
+                                <p class="text-[10px] text-gray-500">Tự động khóa và kéo nhẹ tâm vùng cổ</p>
+                            </div>
+                            <div class="relative inline-block w-12 mr-1 align-middle select-none">
+                                <input type="checkbox" id="aimNeckToggle" onchange="updateFeatureState('aimNeck', this.checked)" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300"/>
+                                <label class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer transition-colors duration-300"></label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (pkgType === 'aimbody') {
+                html = `
+                    <div class="bg-black/40 rounded-2xl p-4 border border-white/10 mb-3 space-y-3">
+                        <h3 class="text-xs text-gray-400 tracking-widest uppercase font-bold flex items-center gap-2">
+                            <i class="fas fa-crosshairs text-pink-400"></i> HỆ THỐNG AIM & ESP
+                        </h3>
+                        <div class="flex items-center justify-between pt-1 border-t border-white/5">
+                            <div><p class="font-semibold text-xs text-white">Aim Head (Khóa Đầu)</p></div>
+                            <div class="relative inline-block w-10 mr-1 align-middle select-none">
+                                <input type="checkbox" id="aimHeadToggle" onchange="updateFeatureState('aimHead', this.checked)" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300"/>
+                                <label class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-600 cursor-pointer transition-colors duration-300"></label>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-1 border-t border-white/5">
+                            <div><p class="font-semibold text-xs text-white">ESP Box (Khung Hộp)</p></div>
+                            <div class="relative inline-block w-10 mr-1 align-middle select-none">
+                                <input type="checkbox" id="espBoxToggle" onchange="updateFeatureState('espBox', this.checked)" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300"/>
+                                <label class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-600 cursor-pointer transition-colors duration-300"></label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                html = `
+                    <div class="bg-black/40 rounded-2xl p-4 border border-white/10 mb-3 space-y-3">
+                        <h3 class="text-xs text-gray-400 tracking-widest uppercase font-bold flex items-center gap-2">
+                            <i class="fas fa-crown text-pink-400"></i> GÓI FULL VIP (ALL-IN-ONE)
+                        </h3>
+                        <div class="flex items-center justify-between pt-1 border-t border-white/5">
+                            <div><p class="font-semibold text-xs text-pink-400">Aim Neck (Vùng Cổ)</p></div>
+                            <div class="relative inline-block w-10 mr-1 align-middle select-none">
+                                <input type="checkbox" id="aimNeckToggle" onchange="updateFeatureState('aimNeck', this.checked)" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300"/>
+                                <label class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-600 cursor-pointer transition-colors duration-300"></label>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-1 border-t border-white/5">
+                            <div><p class="font-semibold text-xs text-white">ESP Line & Box Xuyên Tường</p></div>
+                            <div class="relative inline-block w-10 mr-1 align-middle select-none">
+                                <input type="checkbox" id="espBoxToggle" onchange="updateFeatureState('espBox', this.checked)" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300"/>
+                                <label class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-600 cursor-pointer transition-colors duration-300"></label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+            updateUIState();
+        }
+
+        function startCountdown(expiryTime) {
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            function updateTimer() {
+                const now = Date.now();
+                const diff = expiryTime - now;
+
+                if (diff <= 0) {
+                    document.getElementById('cdDays').innerText = '00';
+                    document.getElementById('cdHours').innerText = '00';
+                    document.getElementById('cdMins').innerText = '00';
+                    document.getElementById('cdSecs').innerText = '00';
+                    clearInterval(countdownInterval);
+                    return;
+                }
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('cdDays').innerText = String(days).padStart(2, '0');
+                document.getElementById('cdHours').innerText = String(hours).padStart(2, '0');
+                document.getElementById('cdMins').innerText = String(mins).padStart(2, '0');
+                document.getElementById('cdSecs').innerText = String(secs).padStart(2, '0');
+            }
+
+            updateTimer();
+            countdownInterval = setInterval(updateTimer, 1000);
+        }
+
+        function switchFFVersion(version) {
+            currentVersion = version;
+
+            document.querySelectorAll('.ff-tab-card').forEach(card => {
+                card.classList.remove('selected');
+                card.querySelector('.active-dot').style.backgroundColor = 'transparent';
+                card.querySelector('.active-dot').style.boxShadow = 'none';
+            });
+            const selectedCard = document.querySelector(`.ff-tab-card[data-version="${version}"]`);
+            selectedCard.classList.add('selected');
+            selectedCard.querySelector('.active-dot').style.backgroundColor = '#a855f7';
+            selectedCard.querySelector('.active-dot').style.boxShadow = '0 0 6px #a855f7';
+
+            updateUIState();
+        }
+
+        function updateUIState() {
+            const state = gameStates[currentVersion];
+            const dnsCard = document.getElementById('dnsCard');
+            const dnsIcon = document.getElementById('dnsIcon');
+            const dnsTitle = document.getElementById('dnsTitle');
+            const dnsSub = document.getElementById('dnsSub');
+            const dnsBtn = document.getElementById('dnsBtn');
+
+            if (document.getElementById('aimNeckToggle')) document.getElementById('aimNeckToggle').checked = state.aimNeck;
+            if (document.getElementById('aimHeadToggle')) document.getElementById('aimHeadToggle').checked = state.aimHead;
+            if (document.getElementById('espBoxToggle')) document.getElementById('espBoxToggle').checked = state.espBox;
+
+            if (state.dnsActive) {
+                dnsCard.className = 'bg-green-950/20 rounded-2xl p-4 border border-green-500/50 mb-3 transition-all duration-300 shadow-[0_0_20px_rgba(34,197,94,0.2)] flex-shrink-0';
+                dnsIcon.className = 'fas fa-shield-alt text-green-400';
+                dnsTitle.className = 'font-bold text-sm text-green-300 flex items-center gap-2';
+                dnsSub.innerText = 'Đang bảo vệ an toàn (Active)';
+                dnsBtn.className = 'px-4 py-2 rounded-xl bg-green-600/30 border border-green-500/40 text-xs font-bold text-green-300 shadow-[0_0_10px_rgba(34,197,94,0.3)]';
+                dnsBtn.innerText = 'ĐÃ BẬT';
+            } else {
+                dnsCard.className = 'bg-black/40 rounded-2xl p-4 border border-white/10 mb-3 transition-all duration-300 flex-shrink-0';
+                dnsIcon.className = 'fas fa-shield-alt text-gray-500';
+                dnsTitle.className = 'font-bold text-sm text-gray-300 flex items-center gap-2';
+                dnsSub.innerText = 'Mã hóa gói tin chống ban tài khoản';
+                dnsBtn.className = 'px-4 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-xs font-bold text-purple-300 transition-all shadow-[0_0_10px_rgba(168,85,247,0.2)]';
+                dnsBtn.innerText = 'KÍCH HOẠT';
+            }
+        }
+
+        function updateFeatureState(feature, value) {
+            gameStates[currentVersion][feature] = value;
+            if (feature === 'aimNeck' && value) {
+                const successModal = document.getElementById('successModal');
+                const successBox = document.getElementById('successBox');
+                successModal.classList.remove('opacity-0', 'pointer-events-none');
+                successBox.classList.remove('scale-95');
+                successBox.classList.add('scale-100');
+            }
+        }
+
+        function closeSuccessModal() {
+            const successModal = document.getElementById('successModal');
+            const successBox = document.getElementById('successBox');
+            successModal.classList.add('opacity-0', 'pointer-events-none');
+            successBox.classList.remove('scale-100');
+            successBox.classList.add('scale-95');
+        }
+
+        function triggerAntiband() {
+            if (gameStates[currentVersion].dnsActive) return;
+
+            const terminalModal = document.getElementById('terminalModal');
+            const terminalBox = document.getElementById('terminalBox');
+            const terminalLogs = document.getElementById('terminalLogs');
+            const terminalCloseBtn = document.getElementById('terminalCloseBtn');
+
+            terminalModal.classList.remove('opacity-0', 'pointer-events-none');
+            terminalBox.classList.remove('scale-95');
+            terminalBox.classList.add('scale-100');
+
+            terminalLogs.innerHTML = `<p>> Initializing secure DNS tunnel for [${currentVersion.toUpperCase()}]...</p>`;
+            terminalCloseBtn.disabled = true;
+            terminalCloseBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            terminalCloseBtn.innerText = 'ĐANG KẾT NỐI...';
+
+            const logs = [
+                `> Routing proxy for ${currentVersion.toUpperCase()} cluster...`,
+                "> Flushing Garena packet inspectors...",
+                "> Masking device fingerprint & UDID...",
+                "> Injecting anti-cheat hooks [SUCCESS]...",
+                "> Antiband Bypass activated successfully!"
+            ];
+
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < logs.length) {
+                    let p = document.createElement('p');
+                    p.innerText = logs[i];
+                    terminalLogs.appendChild(p);
+                    terminalLogs.scrollTop = terminalLogs.scrollHeight;
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    terminalCloseBtn.disabled = false;
+                    terminalCloseBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    terminalCloseBtn.classList.add('hover:bg-green-500/30', 'cursor-pointer');
+                    terminalCloseBtn.innerText = 'HOÀN TẤT & ĐÓNG';
+                    terminalCloseBtn.onclick = () => {
+                        gameStates[currentVersion].dnsActive = true;
+                        updateUIState();
+                        closeTerminal();
+                    };
+                }
+            }, 400);
+        }
+
+        function closeTerminal() {
+            const terminalModal = document.getElementById('terminalModal');
+            const terminalBox = document.getElementById('terminalBox');
+            terminalModal.classList.add('opacity-0', 'pointer-events-none');
+            terminalBox.classList.remove('scale-100');
+            terminalBox.classList.add('scale-95');
+        }
+
+        function showErrorModal(title, msg) {
+            document.getElementById('errorModalTitle').innerText = title;
+            document.getElementById('errorModalMsg').innerText = msg;
+            errorModal.classList.remove('opacity-0', 'pointer-events-none');
+            errorBox.classList.remove('scale-95');
+            errorBox.classList.add('scale-100');
+        }
+
+        function closeError() {
+            errorModal.classList.add('opacity-0', 'pointer-events-none');
+            errorBox.classList.remove('scale-100');
+            errorBox.classList.add('scale-95');
+        }
+
+        // ==========================================
+        // ADMIN PANEL LOGIC
+        // ==========================================
+        const randomKeyBtn = document.getElementById('randomKeyBtn');
+        const genKeyInput = document.getElementById('genKeyInput');
+        const saveKeyBtn = document.getElementById('saveKeyBtn');
+        const keyListContainer = document.getElementById('keyListContainer');
+        const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+
+        randomKeyBtn.addEventListener('click', () => {
+            const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+            genKeyInput.value = `MQUANG-${randomStr}`;
+        });
+
+        saveKeyBtn.addEventListener('click', async () => {
+            const keyCode = genKeyInput.value.trim();
+            const pkg = document.getElementById('genPackage').value;
+            const duration = document.getElementById('genDuration').value;
+
+            if (!keyCode) {
+                alert('Vui lòng nhập hoặc tạo mã key!');
+                return;
+            }
+
+            let expiresAt = null;
+            const now = Date.now();
+            if (duration === '1_month') {
+                expiresAt = now + (30 * 24 * 60 * 60 * 1000);
+            } else if (duration === '3_months') {
+                expiresAt = now + (90 * 24 * 60 * 60 * 1000);
+            }
+
+            await db.ref('keys/' + keyCode).set({
+                package: pkg,
+                duration: duration,
+                createdAt: now,
+                expiresAt: expiresAt,
+                hwid: null
+            });
+
+            alert('Tạo key lên Firebase thành công!');
+            genKeyInput.value = '';
+            loadAdminKeys();
+        });
+
+        async function loadAdminKeys() {
+            keyListContainer.innerHTML = '<p class="text-gray-500 text-center py-2">Đang tải...</p>';
+            const snapshot = await db.ref('keys').once('value');
+            const keysData = snapshot.val();
+
+            if (!keysData) {
+                keyListContainer.innerHTML = '<p class="text-gray-500 text-center">Chưa có key nào.</p>';
+                return;
+            }
+
+            keyListContainer.innerHTML = '';
+            let index = 1;
+            Object.keys(keysData).forEach(keyCode => {
+                const item = keysData[keyCode];
+                let durText = item.duration === '1_month' ? '1 Tháng' : item.duration === '3_months' ? '3 Tháng' : 'Vĩnh Viễn';
+                let hwidStatus = item.hwid ? '<span class="text-green-400">[Đã khóa 1 máy]</span>' : '<span class="text-yellow-400">[Chưa kích hoạt]</span>';
+
+                let div = document.createElement('div');
+                div.className = 'flex flex-col gap-1 bg-[#14141c] p-2.5 rounded-xl border border-white/5';
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-purple-400 font-bold">#${index++} | ${keyCode}</span>
+                        <div class="flex gap-1.5">
+                            <button onclick="navigator.clipboard.writeText('${keyCode}'); alert('Đã copy: ${keyCode}');" class="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-[10px]">Copy</button>
+                            <button onclick="deleteKey('${keyCode}')" class="px-2 py-1 bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded text-[10px]">Xóa</button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-gray-400">
+                        <span>Gói: <strong class="text-white">${item.package}</strong> (${durText})</span>
+                        <span>${hwidStatus}</span>
+                    </div>
+                `;
+                keyListContainer.appendChild(div);
             });
         }
 
-        // 1. Tính năng tạo thư mục mới
-        function createNewFolder() {
-            const folderName = prompt("Nhập tên thư mục mới:");
-            if (folderName && folderName.trim() !== "") {
-                const newFolder = {
-                    id: Date.now(),
-                    name: folderName.trim(),
-                    isFolder: true,
-                    size: "--",
-                    date: new Date().toLocaleDateString('vi-VN')
-                };
-                fileSystem.push(newFolder);
-                renderFiles();
+        async function deleteKey(keyCode) {
+            if (confirm(`Bạn có chắc chắn muốn xóa key [${keyCode}] không?`)) {
+                await db.ref('keys/' + keyCode).remove();
+                loadAdminKeys();
             }
         }
 
-        // 2. Tính năng đổi tên tệp/thư mục
-        function renameItem(id, event) {
-            event.stopPropagation(); // Ngăn việc bấm lầm vào mở file
-            const item = fileSystem.find(f => f.id === id);
-            if (item) {
-                const newName = prompt("Nhập tên mới:", item.name);
-                if (newName && newName.trim() !== "") {
-                    item.name = newName.trim();
-                    renderFiles();
-                }
-            }
-        }
+        adminLogoutBtn.addEventListener('click', () => {
+            keyInput.value = '';
+            adminScreen.classList.remove('active-screen');
+            adminScreen.classList.add('hidden-screen');
+            setTimeout(() => {
+                adminScreen.style.display = 'none';
+                loginScreen.style.display = 'flex';
+                void loginScreen.offsetWidth;
+                loginScreen.classList.remove('hidden-screen');
+                loginScreen.classList.add('active-screen');
+            }, 500);
+        });
 
-        // 3. Tính năng xóa tệp/thư mục
-        function deleteItem(id, event) {
-            event.stopPropagation();
-            const item = fileSystem.find(f => f.id === id);
-            if (item && confirm(`Bạn có chắc muốn xóa "${item.name}"?`)) {
-                fileSystem = fileSystem.filter(f => f.id !== id);
-                renderFiles();
-            }
-        }
-
-        // Tải danh sách lần đầu
-        renderFiles();
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            keyInput.value = ''; 
+            dashboardScreen.classList.remove('active-screen');
+            dashboardScreen.classList.add('hidden-screen');
+            setTimeout(() => {
+                dashboardScreen.style.display = 'none';
+                loginScreen.style.display = 'flex';
+                void loginScreen.offsetWidth;
+                loginScreen.classList.remove('hidden-screen');
+                loginScreen.classList.add('active-screen');
+            }, 500);
+        });
     </script>
 </body>
 </html>
