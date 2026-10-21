@@ -2,163 +2,427 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Filza Manager</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f2f2f7;
-            margin: 0;
-            padding: 0;
-        }
-        .header {
-            background-color: #ffffff;
-            padding: 15px;
-            border-bottom: 1px solid #e5e5ea;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 18px;
-            color: #000;
-        }
-        .file-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            background: #fff;
-        }
-        .file-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-bottom: 0.5px solid #c6c6c8;
-            cursor: pointer;
-        }
-        .file-item:active {
-            background-color: #e5e5ea;
-        }
-        .icon {
-            font-size: 24px;
-            margin-right: 12px;
-        }
-        .details {
-            flex-grow: 1;
-        }
-        .name {
-            font-size: 16px;
-            color: #000;
-            font-weight: 500;
-        }
-        .sub {
-            font-size: 12px;
-            color: #8e8e93;
-            margin-top: 2px;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <h1 id="path-title">/Documents</h1>
-        <button onclick="createNewFolder()" style="color: #007aff; border: none; background: none; font-size: 16px; cursor: pointer;">+ Thư mục</button>
-    </div>
-
-    <ul class="file-list" id="file-container">
-        <!-- Danh sách file sẽ xuất hiện ở đây -->
-    </ul>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MAGICS APP - Tactical HUD Control</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons & Tech Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <script>
-        // Khởi tạo dữ liệu tệp tin ban đầu
-        let currentPath = "/Documents";
-        let fileSystem = [
-            { id: 1, name: "Media", isFolder: true, size: "--", date: "19/10/2026" },
-            { id: 2, name: "Cấu hình", isFolder: true, size: "--", date: "19/10/2026" },
-            { id: 3, name: "menu.json", isFolder: false, size: "1.2 KB", date: "19/10/2026" },
-            { id: 4, name: "notes.txt", isFolder: false, size: "500 B", date: "19/10/2026" }
-        ];
-
-        // Hàm hiển thị danh sách tệp ra màn hình
-        function renderFiles() {
-            const container = document.getElementById("file-container");
-            document.getElementById("path-title").innerText = currentPath;
-            container.innerHTML = "";
-
-            if (fileSystem.length === 0) {
-                container.innerHTML = `<li style="padding: 20px; text-align: center; color: #8e8e93;">Thư mục trống</li>`;
-                return;
-            }
-
-            fileSystem.forEach(file => {
-                const li = document.createElement("li");
-                li.className = "file-item";
-                li.innerHTML = `
-                    <div class="icon">${file.isFolder ? '📁' : '📄'}</div>
-                    <div class="details">
-                        <div class="name">${file.name}</div>
-                        <div class="sub">${file.isFolder ? 'Thư mục' : file.size} • ${file.date}</div>
-                    </div>
-                    <button onclick="renameItem(${file.id}, event)" style="margin-right: 8px; border:none; background:none; color:#007aff; cursor:pointer; font-size: 16px;" title="Đổi tên">✏️</button>
-                    <button onclick="deleteItem(${file.id}, event)" style="border:none; background:none; color:#ff3b30; cursor:pointer; font-size: 16px;" title="Xóa">🗑️</button>
-                `;
-                
-                // Xử lý khi nhấn vào từng dòng
-                li.onclick = (e) => {
-                    if (file.isFolder) {
-                        currentPath += "/" + file.name;
-                        renderFiles();
-                    } else {
-                        alert("Đang mở file: " + file.name);
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        hud: ['Chakra Petch', 'sans-serif'],
+                    },
+                    colors: {
+                        hudBg: '#040810',
+                        hudCyan: '#00e5ff',
+                        hudBlue: '#0066ff',
+                        hudDarkCard: 'rgba(8, 15, 30, 0.85)',
                     }
-                };
-
-                container.appendChild(li);
-            });
-        }
-
-        // 1. Tính năng tạo thư mục mới
-        function createNewFolder() {
-            const folderName = prompt("Nhập tên thư mục mới:");
-            if (folderName && folderName.trim() !== "") {
-                const newFolder = {
-                    id: Date.now(),
-                    name: folderName.trim(),
-                    isFolder: true,
-                    size: "--",
-                    date: new Date().toLocaleDateString('vi-VN')
-                };
-                fileSystem.push(newFolder);
-                renderFiles();
-            }
-        }
-
-        // 2. Tính năng đổi tên tệp/thư mục
-        function renameItem(id, event) {
-            event.stopPropagation(); // Ngăn việc bấm lầm vào mở file
-            const item = fileSystem.find(f => f.id === id);
-            if (item) {
-                const newName = prompt("Nhập tên mới:", item.name);
-                if (newName && newName.trim() !== "") {
-                    item.name = newName.trim();
-                    renderFiles();
                 }
             }
         }
+    </script>
 
-        // 3. Tính năng xóa tệp/thư mục
-        function deleteItem(id, event) {
-            event.stopPropagation();
-            const item = fileSystem.find(f => f.id === id);
-            if (item && confirm(`Bạn có chắc muốn xóa "${item.name}"?`)) {
-                fileSystem = fileSystem.filter(f => f.id !== id);
-                renderFiles();
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #02050a;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Tactical Cyber Grid Background */
+        .hud-bg-grid {
+            background-image: 
+                radial-gradient(circle at center, rgba(0, 229, 255, 0.08) 0%, transparent 70%),
+                linear-gradient(rgba(0, 229, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+            background-size: 100% 100%, 24px 24px, 24px 24px;
+        }
+
+        /* Glassmorphism Horizontal Frame */
+        .hud-frame {
+            background: rgba(6, 12, 24, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            box-shadow: 0 0 35px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 229, 255, 0.05);
+            border-radius: 18px;
+            position: relative;
+        }
+
+        /* HUD Corner Accents */
+        .hud-corner {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-color: #00e5ff;
+        }
+        .hud-tl { top: -1px; left: -1px; border-top: 2px solid; border-left: 2px solid; border-top-left-radius: 18px; }
+        .hud-tr { top: -1px; right: -1px; border-top: 2px solid; border-right: 2px solid; border-top-right-radius: 18px; }
+        .hud-bl { bottom: -1px; left: -1px; border-bottom: 2px solid; border-left: 2px solid; border-bottom-left-radius: 18px; }
+        .hud-br { bottom: -1px; right: -1px; border-bottom: 2px solid; border-right: 2px solid; border-bottom-right-radius: 18px; }
+
+        /* Sleek Tech Input Field */
+        .hud-input-box {
+            background: rgba(2, 6, 14, 0.8);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            transition: all 0.25s ease;
+        }
+        .hud-input-box:focus-within {
+            border-color: #00e5ff;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.35);
+        }
+
+        /* Modern Tech Button */
+        .hud-btn-primary {
+            background: linear-gradient(135deg, #00e5ff 0%, #0066ff 100%);
+            color: #02050a;
+            font-family: 'Chakra Petch', sans-serif;
+            font-weight: 800;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.3);
+            transition: all 0.2s ease;
+        }
+        .hud-btn-primary:active {
+            transform: scale(0.97);
+            box-shadow: 0 2px 10px rgba(0, 229, 255, 0.5);
+        }
+
+        /* Custom Modern Tech Switch */
+        .hud-switch {
+            position: relative;
+            width: 44px;
+            height: 22px;
+            border-radius: 11px;
+            background-color: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+        .hud-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #94a3b8;
+            transition: all 0.25s ease;
+        }
+        input:checked + .hud-switch {
+            background-color: rgba(0, 229, 255, 0.2);
+            border-color: #00e5ff;
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+        }
+        input:checked + .hud-switch::after {
+            transform: translateX(22px);
+            background-color: #00e5ff;
+            box-shadow: 0 0 8px #00e5ff;
+        }
+    </style>
+</head>
+<body class="hud-bg-grid p-2 md:p-6">
+
+    <!-- Ambient Subtle Cyan Glow -->
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-hudCyan/10 rounded-full blur-[130px] pointer-events-none"></div>
+
+    <!-- ==================== 1. MÀN HÌNH ĐĂNG NHẬP KEY (KHUNG NGANG LANDSCAPE) ==================== -->
+    <div id="loginScreen" class="w-full max-w-2xl hud-frame p-5 md:p-6 transition-all duration-300 z-10">
+        <div class="hud-corner hud-tl"></div><div class="hud-corner hud-tr"></div>
+        <div class="hud-corner hud-bl"></div><div class="hud-corner hud-br"></div>
+
+        <!-- Top Status Bar -->
+        <div class="flex justify-between items-center text-[11px] font-hud tracking-widest text-hudCyan/80 pb-3 mb-4 border-b border-hudCyan/20">
+            <span class="flex items-center gap-2">
+                <i class="fa-solid fa-microchip"></i> MAGICS AUTHENTICATOR v1.0
+            </span>
+            <span class="flex items-center gap-1.5 text-emerald-400 font-bold">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> SECURE GATEWAY
+            </span>
+        </div>
+
+        <!-- Horizontal 2-Column Layout -->
+        <div class="grid grid-cols-12 gap-5 items-center">
+            
+            <!-- Left Column: Avatar & Branding -->
+            <div class="col-span-5 flex flex-col items-center justify-center border-r border-hudCyan/15 pr-4 text-center">
+                <div class="relative w-20 h-20 mb-3 rounded-2xl overflow-hidden border-2 border-hudCyan/50 shadow-[0_0_20px_rgba(0,229,255,0.3)]">
+                    <img src="https://i.postimg.cc/t4KmmgB6/avt-magic.jpg" alt="MAGICS APP" class="w-full h-full object-cover">
+                </div>
+                <h1 class="text-xl font-bold font-hud tracking-wider text-white">MAGICS APP</h1>
+                <p class="text-[11px] text-gray-400 font-medium">System License Access</p>
+            </div>
+
+            <!-- Right Column: Key Entry Input -->
+            <div class="col-span-7 space-y-3.5">
+                <div>
+                    <label class="block text-[11px] font-hud text-hudCyan/90 uppercase tracking-wider mb-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-key"></i> Nhập License Key System:
+                    </label>
+                    <div class="hud-input-box rounded-xl flex items-center px-3.5 py-2.5">
+                        <i class="fa-solid fa-shield-halved text-hudCyan/60 mr-2.5 text-xs"></i>
+                        <input type="password" id="keyInput" placeholder="Nhập Key kích hoạt..." class="w-full bg-transparent text-white font-hud tracking-wider text-xs placeholder-gray-600 focus:outline-none">
+                        <button type="button" onclick="toggleKeyVisibility()" class="text-gray-400 hover:text-hudCyan transition-colors ml-2 focus:outline-none text-xs">
+                            <i id="eyeIcon" class="fa-solid fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="hidden text-[11px] text-red-400 font-medium flex items-center gap-1.5 bg-red-950/40 border border-red-500/30 px-3 py-1.5 rounded-lg">
+                    <i class="fa-solid fa-circle-exclamation text-red-400"></i>
+                    <span>Key kích hoạt không hợp lệ!</span>
+                </div>
+
+                <button onclick="loginWithKey()" class="hud-btn-primary w-full py-3 rounded-xl text-xs uppercase flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>KÍCH HOẠT HỆ THỐNG</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom Footer -->
+        <div class="mt-4 pt-2.5 border-t border-white/5 flex justify-between items-center text-[10px] text-gray-500 font-hud">
+            <span>CLIENT HARDWARE ENCRYPTION</span>
+            <span>256-BIT PROTECTED</span>
+        </div>
+    </div>
+
+    <!-- ==================== 2. MÀN HÌNH MENU CHỨC NĂNG (DẠNG DASHBOARD NGANG 3 CỘT) ==================== -->
+    <div id="menuScreen" class="hidden w-full max-w-4xl hud-frame p-4 md:p-5 transition-all duration-300 z-10">
+        <div class="hud-corner hud-tl"></div><div class="hud-corner hud-tr"></div>
+        <div class="hud-corner hud-bl"></div><div class="hud-corner hud-br"></div>
+
+        <!-- Header Navigation Bar -->
+        <div class="flex justify-between items-center border-b border-hudCyan/20 pb-3 mb-4">
+            <div class="flex items-center gap-3">
+                <img src="https://i.postimg.cc/t4KmmgB6/avt-magic.jpg" alt="Avatar" class="w-9 h-9 rounded-xl object-cover border border-hudCyan/40">
+                <div>
+                    <h2 class="text-sm font-bold font-hud text-white tracking-wider">MAGICS CONTROL DASHBOARD</h2>
+                    <span class="text-[10px] text-hudCyan font-hud uppercase tracking-widest flex items-center gap-1">
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i> ACTIVE VIP LICENSE
+                    </span>
+                </div>
+            </div>
+            <button onclick="logout()" class="px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-[11px] font-hud text-red-400 hover:bg-red-500/20 transition-all">
+                <i class="fa-solid fa-power-off mr-1"></i> THOÁT
+            </button>
+        </div>
+
+        <!-- 3-Column Horizontal Grid -->
+        <div class="grid grid-cols-12 gap-3.5">
+
+            <!-- Column 1: System Info & Status -->
+            <div class="col-span-3 bg-black/40 border border-hudCyan/15 rounded-xl p-3 flex flex-col justify-between">
+                <div>
+                    <div class="text-[10px] font-hud font-bold text-hudCyan/80 uppercase tracking-wider mb-2 border-b border-white/5 pb-1">
+                        <i class="fa-solid fa-server mr-1"></i> Trạng Thái
+                    </div>
+                    <div class="space-y-2 text-[11px]">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Phiên bản:</span>
+                            <span class="font-hud font-bold text-white">v1.0.0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Bảo mật:</span>
+                            <span class="font-hud font-bold text-emerald-400">An toàn</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Máy chủ:</span>
+                            <span class="font-hud font-bold text-hudCyan">Sẵn sàng</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="notifySaved()" class="w-full py-2.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-hud font-bold text-[11px] tracking-wider uppercase flex items-center justify-center gap-1.5 active:scale-95 transition-all mt-3">
+                    <i class="fa-solid fa-floppy-disk"></i> LƯU MENU
+                </button>
+            </div>
+
+            <!-- Column 2: Aim Controls -->
+            <div class="col-span-4 bg-black/40 border border-hudCyan/20 rounded-xl p-3 space-y-3">
+                <div class="text-[10px] font-hud font-bold text-hudCyan uppercase tracking-wider border-b border-white/5 pb-1 flex items-center justify-between">
+                    <span><i class="fa-solid fa-crosshairs mr-1"></i> Cấu Hình Aim</span>
+                    <span class="text-[9px] text-gray-500">ASSIST</span>
+                </div>
+
+                <!-- Aim Neck -->
+                <div class="flex items-center justify-between bg-white/[0.02] p-2 rounded-lg border border-white/5">
+                    <div>
+                        <div class="text-xs font-bold font-hud text-white">Aim Neck</div>
+                        <div class="text-[10px] text-gray-400">Khóa tâm vùng Cổ</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggleAimNeck" class="sr-only" onchange="saveSettings()">
+                        <div class="hud-switch"></div>
+                    </label>
+                </div>
+
+                <!-- Aim Drag -->
+                <div class="flex items-center justify-between bg-white/[0.02] p-2 rounded-lg border border-white/5">
+                    <div>
+                        <div class="text-xs font-bold font-hud text-white">Aim Drag</div>
+                        <div class="text-[10px] text-gray-400">Kéo tâm mượt mà</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggleAimDrag" class="sr-only" onchange="saveSettings()">
+                        <div class="hud-switch"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Column 3: ESP + AimBody (Special Section) -->
+            <div class="col-span-5 bg-gradient-to-br from-hudBlue/15 to-black/50 border border-hudCyan/30 rounded-xl p-3 space-y-2.5">
+                <div class="text-[10px] font-hud font-bold text-hudCyan uppercase tracking-wider border-b border-hudCyan/20 pb-1 flex items-center justify-between">
+                    <span><i class="fa-solid fa-eye mr-1"></i> Mục Riêng: ESP + AimBody</span>
+                    <span class="text-[9px] text-hudCyan/80 font-bold">SPECIAL</span>
+                </div>
+
+                <!-- AimBody Lock -->
+                <div class="flex items-center justify-between bg-white/[0.03] p-1.5 px-2 rounded-lg border border-white/5">
+                    <div>
+                        <div class="text-xs font-bold font-hud text-white">AimBody Lock</div>
+                        <div class="text-[9.5px] text-gray-300">Khóa tâm cố định Thân</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggleAimBody" class="sr-only" onchange="saveSettings()">
+                        <div class="hud-switch"></div>
+                    </label>
+                </div>
+
+                <!-- ESP Box & Line -->
+                <div class="flex items-center justify-between bg-white/[0.03] p-1.5 px-2 rounded-lg border border-white/5">
+                    <div>
+                        <div class="text-xs font-bold font-hud text-white">ESP Box & Line</div>
+                        <div class="text-[9.5px] text-gray-300">Hiện khung & tia định vị</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggleEspBox" class="sr-only" onchange="saveSettings()">
+                        <div class="hud-switch"></div>
+                    </label>
+                </div>
+
+                <!-- ESP Distance -->
+                <div class="flex items-center justify-between bg-white/[0.03] p-1.5 px-2 rounded-lg border border-white/5">
+                    <div>
+                        <div class="text-xs font-bold font-hud text-white">ESP Distance</div>
+                        <div class="text-[9.5px] text-gray-300">Đo khoảng cách (Mét)</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggleEspDist" class="sr-only" onchange="saveSettings()">
+                        <div class="hud-switch"></div>
+                    </label>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Success Toast -->
+        <div id="toast" class="hidden mt-3 text-center text-[11px] font-hud font-bold text-hudCyan bg-hudCyan/10 border border-hudCyan/30 py-1.5 rounded-lg">
+            ✓ Đã ghi nhớ cấu hình hệ thống!
+        </div>
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        window.onload = function() {
+            const savedKey = localStorage.getItem('magics_hud_key');
+            if (savedKey === 'ad') {
+                showMenu();
+                loadSettings();
+            }
+        };
+
+        function toggleKeyVisibility() {
+            const input = document.getElementById('keyInput');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
             }
         }
 
-        // Tải danh sách lần đầu
-        renderFiles();
+        function loginWithKey() {
+            const val = document.getElementById('keyInput').value.trim();
+            const err = document.getElementById('errorMessage');
+
+            if (val === 'ad') {
+                err.classList.add('hidden');
+                localStorage.setItem('magics_hud_key', 'ad');
+                showMenu();
+                loadSettings();
+            } else {
+                err.classList.remove('hidden');
+            }
+        }
+
+        function showMenu() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('menuScreen').classList.remove('hidden');
+        }
+
+        function logout() {
+            localStorage.removeItem('magics_hud_key');
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('keyInput').value = '';
+        }
+
+        function saveSettings() {
+            const settings = {
+                aimNeck: document.getElementById('toggleAimNeck').checked,
+                aimDrag: document.getElementById('toggleAimDrag').checked,
+                aimBody: document.getElementById('toggleAimBody').checked,
+                espBox: document.getElementById('toggleEspBox').checked,
+                espDist: document.getElementById('toggleEspDist').checked,
+            };
+            localStorage.setItem('magics_hud_settings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('magics_hud_settings'));
+            if (settings) {
+                document.getElementById('toggleAimNeck').checked = settings.aimNeck || false;
+                document.getElementById('toggleAimDrag').checked = settings.aimDrag || false;
+                document.getElementById('toggleAimBody').checked = settings.aimBody || false;
+                document.getElementById('toggleEspBox').checked = settings.espBox || false;
+                document.getElementById('toggleEspDist').checked = settings.espDist || false;
+            }
+        }
+
+        function notifySaved() {
+            saveSettings();
+            const toast = document.getElementById('toast');
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2500);
+        }
     </script>
 </body>
 </html>
