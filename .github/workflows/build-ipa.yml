@@ -1,0 +1,45 @@
+name: Auto Build IPA & Update OTA
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-node-version: '18'
+
+      - name: Install Dependencies
+        run: |
+          npm install
+
+      - name: Build Web Assets & Capacitor iOS
+        run: |
+          mkdir -p www
+          cp index.html www/
+          npx cap sync ios
+
+      - name: Build IPA File
+        run: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release archive -archivePath build/App.xcarchive
+          xcodebuild -exportArchive -archivePath build/App.xcarchive -exportOptionsPlist exportOptions.plist -exportPath build/out
+          mv build/out/*.ipa ../../MagicApp.ipa
+
+      - name: Auto Commit & Push Updated IPA
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "action@github.com"
+          git add MagicApp.ipa
+          git commit -m "Auto updated MagicApp.ipa from latest HTML" || exit 0
+          git pushd
