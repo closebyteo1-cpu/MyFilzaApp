@@ -1,6 +1,6 @@
 {
-  "appId": "com.myfilza.app",
-  "appName": "MyFilzaApp",
+  "appId": "com.mquang.magicapp",
+  "appName": "Magic App",
   "webDir": "www",
   "bundledWebRuntime": false
 }
